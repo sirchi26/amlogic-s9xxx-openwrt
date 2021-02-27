@@ -99,7 +99,7 @@ jobs:
         find dl -size -1024c -exec rm -f {} \;
 
     - name: SSH connection to Actions @ Ctrl+C to enter, Ctrl+D to exit
-      uses: P3TERX/debugger-action@main
+      uses: P3TERX/ssh2actions@main
       if: env.SSH_ACTIONS == 'true' || contains(github.event.action, 'ssh')
 
     - name: Compile the firmware
