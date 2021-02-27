@@ -53,10 +53,9 @@ jobs:
       if: (!cancelled())
       run: |
         [ -d openwrt-armvirt ] || mkdir -p openwrt-armvirt
-        curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | grep -o "openwrt_s9xxx_.*/openwrt-armvirt-.*\.tar.gz" | head -n 1 > DOWNLOAD_URL
-        [ -s DOWNLOAD_URL ] && wget -q -P openwrt-armvirt https://github.com/${GITHUB_REPOSITORY}/releases/download/$(cat DOWNLOAD_URL)
+        wget -q -P openwrt-armvirt https://archive.openwrt.org/releases/19.07.5/targets/armvirt/64/openwrt-19.07.5-armvirt-64-default-rootfs.tar.gz
         sudo chmod +x make
-        sudo ./make -d -b s905x3_s905x2_s905x_s922x_n1_octopus -k 5.9.16_5.4.98
+        sudo ./make -d -b s905x -k 4.14.199
         cd out/ && sudo gzip *.img
         cp -f ../openwrt-armvirt/*.tar.gz . && sync
         echo "FILEPATH=$PWD" >> $GITHUB_ENV
@@ -89,7 +88,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: openwrt_s9xxx_${{ env.FILE_DATE }}
+        tag_name: openwrt_19.07.5_hg680p_${{ env.FILE_DATE }}
         files: ${{ env.FILEPATH }}/*
         body: |
           This is OpenWrt firmware for S9xxx-Boxs
