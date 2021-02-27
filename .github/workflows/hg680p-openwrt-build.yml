@@ -170,7 +170,7 @@ jobs:
       uses: actions/upload-artifact@v2
       if: steps.build.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       with:
-        name: openwrt_phicomm-n1_${{ env.FILE_DATE }}
+        name: openwrt_s905x_hg680p_${{ env.FILE_DATE }}
         path: ${{ env.FILEPATH }}/openwrt_n1_*
         retention-days: ${{ env.RECENT_LASTEST }}
         if-no-files-found: ignore
