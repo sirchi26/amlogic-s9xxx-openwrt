@@ -7,7 +7,7 @@
 # Copyright (C) 2020 https://github.com/ophub/amlogic-s9xxx-openwrt
 #========================================================================================================================
 
-name: Build OpenWrt
+name: Deprecated
 
 on:
   repository_dispatch:
@@ -17,8 +17,6 @@ on:
         description: 'SSH connection to Actions'
         required: false
         default: 'false'
-  schedule:
-    - cron: '0 17 * * *'
 
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
@@ -32,13 +30,13 @@ env:
   UPLOAD_RELEASE: true
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
-  DELETE_RELEASE: true
-  DELETE_ARTIFACTS: true
+  DELETE_RELEASE: false
+  DELETE_ARTIFACTS: false
   KEEP_DAY: 3
   KEEP_MININUM_RUNS: 0
   KEEP_MININUM_RELEASE: 1
   RECENT_LASTEST: 3
-  TZ: Asia/Shanghai
+  TZ: Asia/Jakarta
 
 jobs:
   build:
@@ -140,15 +138,6 @@ jobs:
         echo "TMPFILEPATH=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
 
-    - name: Upload armvirt directory to Actions
-      uses: actions/upload-artifact@v2
-      if: steps.organize.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
-      with:
-        name: openwrt_armvirt_64_${{ env.FILE_DATE }}
-        path: ${{ env.TMPFILEPATH }}
-        retention-days: ${{ env.RECENT_LASTEST }}
-        if-no-files-found: ignore
-
     - name: Build OpenWrt firmware
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       id: build
@@ -170,20 +159,6 @@ jobs:
       with:
         path: ${{ env.FILEPATH }}/
 
-    - name: Upload OpenWrt Firmware to cowtransfer
-      if: steps.build.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
-      run: |
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer cow --block 2621440 -s -p 64 --no-progress ${{ env.FILEPATH }}/{openwrt_s9xxx_*,openwrt_n1_*} 2>&1 | tee cowtransfer.log
-        echo "COW_URL=$(cat cowtransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_ENV
-
-    - name: Upload OpenWrt Firmware to WeTransfer
-      if: steps.build.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
-      run: |
-        curl -fsSL git.io/file-transfer | sh
-        ./transfer wet -s -p 16 --no-progress ${{ env.FILEPATH }}/{openwrt_s9xxx_*,openwrt_n1_*} 2>&1 | tee wetransfer.log
-        echo "WET_URL=$(cat wetransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_ENV
-
     - name: Upload OpenWrt Firmware to Release
       uses: softprops/action-gh-release@v1
       if: steps.build.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
@@ -200,15 +175,6 @@ jobs:
           Default password: password
           Default WIFI name: OpenWrt
           Default WIFI password: none
-          Install command: s9xxx-install.sh
-          Upgrade command: s9xxx-update.sh
-
-    - name: Delete older releases
-      uses: dev-drprasad/delete-older-releases@master
-      if: env.DELETE_RELEASE == 'true'
-      with:
-        keep_latest: ${{ env.KEEP_MININUM_RELEASE }}
-        delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
